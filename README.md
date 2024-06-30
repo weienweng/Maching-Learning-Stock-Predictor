@@ -39,6 +39,15 @@ This Stock Predictor, developed by WeiEn Weng, is a comprehensive tool for predi
     cd LSTM-Stock-Predictor
     ```
 
+**Create a Virtual Environment (Optional)**
+
+It's recommended to create a virtual environment to manage dependencies. You can create and activate a virtual environment with the following commands:
+
+```bash
+python -m venv venv
+source venv/bin/activate   # On Windows use `venv\Scripts\activate`
+```
+
 2. **Install dependencies**:
     ```bash
     pip install -r requirements.txt
@@ -80,6 +89,10 @@ This Stock Predictor, developed by WeiEn Weng, is a comprehensive tool for predi
     - **Metrics**: Displays evaluation metrics for the models.
     - **Data**: Shows the data used for predictions.
     - **Financial Data**: Displays financial metrics of the stock.
+    
+### Command-Line Instructions
+
+For advanced users, you can run the LSTM model directly from the command line by modifying and executing the script as needed. Refer to the `lstmPublic.py` script for customizable parameters and functions.
 
 ## Exporting Charts
 
@@ -92,6 +105,27 @@ This Stock Predictor, developed by WeiEn Weng, is a comprehensive tool for predi
 ## Acknowledgements
 
 - This application leverages various open-source libraries and APIs, including PyQt5, Torch, Yahoo Finance API, and Google Sheets API.
+
+## Troubleshooting
+
+### Common Issues
+
+- **Missing Dependencies**: Ensure all required libraries are installed. Run `pip install -r requirements.txt` to install any missing dependencies.
+- **Invalid Ticker Symbol**: Verify the ticker symbol is correct and belongs to a supported company.
+- **Date Range Issues**: Ensure the selected date range is valid and contains sufficient historical data.
+
+### Logging
+
+The application logs errors and important events. Check the log file (`app.log`) for detailed error messages and troubleshooting information.
+
+## Contributing
+
+Contributions are welcome! Please fork the repository and submit a pull request with your changes.
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for more details.
+
 
 ---
 

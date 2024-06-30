@@ -32,6 +32,7 @@ from statsmodels.tsa.arima.model import ARIMA
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
+# Use the Qt5Agg backend for Matplotlib
 matplotlib.use('Qt5Agg')
 
 # Set up logging
@@ -39,12 +40,14 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 # Google Sheets setup
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SERVICE_ACCOUNT_FILE = 'PASTE_YOUR_JSON_FILE'
-SPREADSHEET_ID = 'YOUR_GOOGLE_SHEET_ID'
+SERVICE_ACCOUNT_FILE = 'PASTE_YOUR_JSON_FILE_PATH'  # Path to your service account credentials JSON file
+SPREADSHEET_ID = 'YOUR_SHEET_ID'  # Your Google Sheets ID
 
+# Authorize Google Sheets client
 creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 client = gspread.authorize(creds)
 
+# Define the LSTM model class
 class LSTMModel(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim, dropout=0.2):
         super(LSTMModel, self).__init__()
@@ -61,11 +64,13 @@ class LSTMModel(nn.Module):
         out = self.fc(out[:, -1, :])
         return out
 
+# SignalEmitter class for PyQt signals
 class SignalEmitter(QObject):
     update_chart = pyqtSignal(dict)
     update_eta = pyqtSignal(str)
     show_loading = pyqtSignal(bool)
 
+# Thread class for running stock prediction
 class StockPredictionThread(QThread):
     update_signal = pyqtSignal(str)
     progress_signal = pyqtSignal(int)
@@ -85,6 +90,7 @@ class StockPredictionThread(QThread):
         self.partial_results = None
         self.device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
 
+    # Run method for the thread
     def run(self):
         try:
             self.start_time = datetime.now()
@@ -93,6 +99,7 @@ class StockPredictionThread(QThread):
             # Load data from Google Sheets
             sheet_data = self.window.load_from_google_sheets(self.start_date, self.end_date)
             
+            # Check if we can use previously calculated data
             if sheet_data and sheet_data['dates'][-1] == datetime.now().date() - timedelta(days=1):
                 self.update_signal.emit("Using data calculated yesterday.")
                 self.window.signal_emitter.update_chart.emit(sheet_data)
@@ -101,6 +108,7 @@ class StockPredictionThread(QThread):
             
             self.update_signal.emit(f"Fetching new data for {self.symbol}...")
             
+            # Fetch new stock data
             stock_data = self.fetch_stock_data(self.symbol, self.start_date, self.end_date)
             
             if stock_data.empty:
@@ -144,10 +152,12 @@ class StockPredictionThread(QThread):
             # Combine results from all models
             combined_results = self.combine_results(results, stock_data)
 
+            # Fetch financial data for the stock
             financial_data = self.get_financial_data(self.symbol)
             combined_results['financial_data'] = financial_data
             combined_results['stock_data'] = stock_data
 
+            # Save results to Google Sheets and update the UI
             self.save_to_google_sheets(combined_results)
             self.window.signal_emitter.update_chart.emit(combined_results)
             self.finished_signal.emit(combined_results)
@@ -157,6 +167,7 @@ class StockPredictionThread(QThread):
             logging.error(traceback.format_exc())
             self.update_signal.emit(f"Error occurred during prediction process: {str(e)}")
 
+    # Fetch stock data using yfinance
     def fetch_stock_data(self, symbol, start_date, end_date):
         stock = yf.Ticker(symbol)
         df = stock.history(start=start_date, end=end_date)
@@ -164,6 +175,7 @@ class StockPredictionThread(QThread):
             logging.warning(f"Unable to retrieve data for symbol: {symbol}")
         return df
 
+    # Preprocess the stock data
     def preprocess_data(self, stock_data):
         if len(stock_data) < 30:  # Ensure we have enough data
             logging.warning("Insufficient data for preprocessing")
@@ -209,15 +221,19 @@ class StockPredictionThread(QThread):
         
         return scaled_data, scaler, original_close
 
+    # Detect Doji candlestick pattern
     def detect_doji(self, data):
         return (abs(data['Open'] - data['Close']) / (data['High'] - data['Low']) < 0.1).astype(float)
 
+    # Detect Hammer candlestick pattern
     def detect_hammer(self, data):
         return ((data['Low'] - data['Open']) / (data['High'] - data['Low']) > 0.6).astype(float)
 
+    # Detect Shooting Star candlestick pattern
     def detect_shooting_star(self, data):
         return ((data['High'] - data['Close']) / (data['High'] - data['Low']) > 0.6).astype(float)
 
+    # Prepare sequences for LSTM input
     def prepare_sequences(self, data, sequence_length):
         X, y = [], []
         for i in range(len(data) - sequence_length):
@@ -227,6 +243,7 @@ class StockPredictionThread(QThread):
         y = torch.FloatTensor(np.array(y)).view(-1, 1)
         return X, y
 
+    # Train the model
     def train_model(self, model, train_loader, val_loader, num_epochs, learning_rate, fold, total_epochs, current_epoch):
         criterion = nn.MSELoss()
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -279,6 +296,7 @@ class StockPredictionThread(QThread):
         
         return train_losses, val_losses if val_loader else None
 
+    # Predict future prices using the trained model
     def predict_future(self, model, scaled_data, scaler, days=7):
         model.eval()
         last_sequence = torch.FloatTensor(scaled_data[-60:]).unsqueeze(0).to(self.device)
@@ -297,6 +315,7 @@ class StockPredictionThread(QThread):
         future_predictions = np.array(future_predictions).reshape(-1, 1)
         return future_predictions
 
+    # Get financial data from Yahoo Finance
     def get_financial_data(self, symbol):
         stock = yf.Ticker(symbol)
         
@@ -324,6 +343,7 @@ class StockPredictionThread(QThread):
         
         return financial_data
 
+    # Save results to Google Sheets
     def save_to_google_sheets(self, results):
         try:
             spreadsheet = client.open_by_key(SPREADSHEET_ID)
@@ -363,6 +383,7 @@ class StockPredictionThread(QThread):
             logging.error(traceback.format_exc())
             self.update_signal.emit(f"Error saving to Google Sheets: {str(e)}")
 
+    # Prepare combined results data for Google Sheets
     def prepare_combined_data(self, results):
         data = [
             ['Date', 'Actual Price', 'Predicted Price'],
@@ -380,6 +401,7 @@ class StockPredictionThread(QThread):
         ]
         return data
 
+    # Prepare individual model results data for Google Sheets
     def prepare_model_data(self, model_results):
         data = [
             ['Date', 'Actual Price', 'Predicted Price'],
@@ -397,6 +419,7 @@ class StockPredictionThread(QThread):
         ]
         return data
 
+    # Run the LSTM model
     def run_lstm_model(self, processed_data, scaler, original_close):
         self.update_signal.emit("Running LSTM model...")
         sequence_length = 60
@@ -503,6 +526,7 @@ class StockPredictionThread(QThread):
             'train_losses': [float(loss) for loss in train_losses]
         }
 
+    # Run the ARIMA model
     def run_arima_model(self, original_close):
         self.update_signal.emit("Running ARIMA model...")
         
@@ -544,6 +568,7 @@ class StockPredictionThread(QThread):
             'std_dev': float(std_dev)
         }
 
+    # Run the Random Forest model
     def run_random_forest_model(self, processed_data, scaler, original_close):
         self.update_signal.emit("Running Random Forest model...")
         
@@ -593,6 +618,7 @@ class StockPredictionThread(QThread):
             'std_dev': float(std_dev)
         }
 
+    # Run Technical Analysis
     def run_technical_analysis(self, stock_data):
         self.update_signal.emit("Running Technical Analysis...")
         
@@ -641,6 +667,7 @@ class StockPredictionThread(QThread):
             'std_dev': 0  # Not applicable for this method
         }
 
+    # Combine results from all models
     def combine_results(self, results, stock_data):
         self.update_signal.emit("Combining results from all models...")
         
@@ -700,6 +727,7 @@ class StockPredictionThread(QThread):
         self.update_signal.emit("Results combination completed.")
         return combined_results
 
+    # Get prediction days based on selected period
     def get_prediction_days(self):
         prediction_periods = {
             'One Day': 1,
@@ -712,6 +740,7 @@ class StockPredictionThread(QThread):
         }
         return prediction_periods[self.prediction_period]
 
+# Main window class for the PyQt application
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -812,7 +841,7 @@ class MainWindow(QMainWindow):
             # Add accuracy label and author name
             labels_layout = QHBoxLayout()
             accuracy_label = QLabel(f"{model} Accuracy: N/A")
-            author_label = QLabel("Made by: WeiEn")
+            author_label = QLabel("Made by: WeiEn Weng")
             labels_layout.addWidget(accuracy_label)
             labels_layout.addStretch()  # This will push the author label to the right
             labels_layout.addWidget(author_label)
@@ -836,7 +865,7 @@ class MainWindow(QMainWindow):
                 'figure': figure,
                 'canvas': canvas,
                 'accuracy_label': accuracy_label,
-                'author_label': author_label,  # Add this line
+                'author_label': author_label,
                 'loading_label': loading_label,
                 'loading_movie': loading_movie
             }
@@ -884,12 +913,14 @@ class MainWindow(QMainWindow):
             "REGN", "DUK", "SO", "CI", "SLB", "VRTX", "ZTS", "AON", "BSX", "NOW", "2330.TW"
         ]
 
+    # Reset the date range to default values
     def reset_date_range(self):
         self.start_date.setDate(QDate.currentDate().addYears(-1))
         self.end_date.setDate(QDate.currentDate())
         self.start_date.setDisplayFormat("yyyy-MM-dd")
         self.end_date.setDisplayFormat("yyyy-MM-dd")
 
+    # Update suggestions based on the text input
     def update_suggestions(self, text):
         if len(text) < 1:
             self.suggestion_list.clear()
@@ -899,11 +930,13 @@ class MainWindow(QMainWindow):
         self.suggestion_list.clear()
         self.suggestion_list.addItems(suggestions[:5])  # Show top 5 suggestions
 
+    # Select suggestion from the list
     def select_suggestion(self, item):
         self.search_bar.setText(item.text())
         self.suggestion_list.clear()
         self.search_stock()
 
+    # Search stock based on the entered symbol
     def search_stock(self):
         self.symbol = self.search_bar.text().upper()
         if not self.symbol:
@@ -933,6 +966,7 @@ class MainWindow(QMainWindow):
     
         self.start_button.setEnabled(True)
 
+    # Start the prediction process
     def start_prediction(self):
         if not self.symbol:
             self.update_status("Please enter a stock symbol.")
@@ -956,6 +990,7 @@ class MainWindow(QMainWindow):
         self.prediction_thread.finished_signal.connect(self.show_results)
         self.prediction_thread.start()
 
+    # Toggle pause/resume of the prediction process
     def toggle_pause(self):
         if self.prediction_thread and self.prediction_thread.isRunning():
             if self.prediction_thread.is_paused:
@@ -967,6 +1002,7 @@ class MainWindow(QMainWindow):
                 self.pause_button.setText("Resume")
                 self.update_status("Prediction paused.")
 
+    # Recalculate all data
     def recalculate_all(self):
         self.update_status("Starting recalculation of all data...")
         self.recalculate_button.setEnabled(False)
@@ -1006,6 +1042,7 @@ class MainWindow(QMainWindow):
         self.recalculate_button.setEnabled(True)
         self.start_button.setEnabled(True)
 
+    # Import existing data from Google Sheets
     def import_existing_data(self):
         if not self.symbol:
             self.update_status("Please enter a stock symbol.")
@@ -1020,6 +1057,7 @@ class MainWindow(QMainWindow):
         else:
             self.update_status(f"No existing data found for {self.symbol}.")
 
+    # Load data from Google Sheets
     def load_from_google_sheets(self, start_date, end_date):
         try:
             spreadsheet = client.open_by_key(SPREADSHEET_ID)
@@ -1076,6 +1114,7 @@ class MainWindow(QMainWindow):
             self.update_status(f"Error loading data from Google Sheets: {str(e)}")
             return None
 
+    # Parse sheet data from Google Sheets
     def parse_sheet_data(self, all_data):
         dates = []
         actual = []
@@ -1130,15 +1169,19 @@ class MainWindow(QMainWindow):
             'model': metrics.get('Model Type')
         }
 
+    # Update status text
     def update_status(self, message):
         self.status_text.append(message)
 
+    # Update progress bar
     def update_progress(self, value):
         self.progress_bar.setValue(value)
 
+    # Update ETA label
     def update_eta(self, eta):
         self.eta_label.setText(eta)
 
+    # Show/hide loading indicator
     def show_loading_indicator(self, show):
         for chart_tab in self.chart_tabs.values():
             if show:
@@ -1148,6 +1191,7 @@ class MainWindow(QMainWindow):
                 chart_tab['loading_movie'].stop()
                 chart_tab['loading_label'].hide()
 
+    # Update chart with results
     def update_chart(self, results):
         try:
             self.show_loading_indicator(True)
@@ -1165,6 +1209,7 @@ class MainWindow(QMainWindow):
         finally:
             self.show_loading_indicator(False)
 
+    # Update a single chart
     def update_single_chart(self, model, data):
         fig = self.chart_tabs[model]['figure']
         canvas = self.chart_tabs[model]['canvas']
@@ -1200,6 +1245,7 @@ class MainWindow(QMainWindow):
         # Update author label
         author_label.setText("WeiEn")
 
+    # Show results in the UI
     def show_results(self, results):
         try:
             self.results = results
@@ -1225,6 +1271,7 @@ class MainWindow(QMainWindow):
         self.pause_button.setEnabled(False)
         self.recalculate_button.setEnabled(True)
     
+    # Update metrics tab
     def update_metrics(self, results):
         self.metrics_text.clear()
         self.metrics_text.append("Combined Model Metrics:")
@@ -1245,6 +1292,7 @@ class MainWindow(QMainWindow):
             if 'sharpe_ratio' in model_results:
                 self.metrics_text.append(f"Sharpe Ratio: {model_results['sharpe_ratio']}")
             
+    # Update data table tab
     def update_data_table(self, results):
         self.data_table.setColumnCount(3)
         self.data_table.setHorizontalHeaderLabels(['Date', 'Actual Price', 'Predicted Price'])
@@ -1257,6 +1305,7 @@ class MainWindow(QMainWindow):
 
         self.data_table.resizeColumnsToContents()
 
+    # Update financial data table tab
     def update_financial_table(self, results):
         if 'financial_data' in results:
             self.financial_table.setColumnCount(2)
@@ -1269,6 +1318,7 @@ class MainWindow(QMainWindow):
 
             self.financial_table.resizeColumnsToContents()
 
+    # Export chart as PNG file
     def export_chart(self, model):
         if self.results is None:
             self.update_status(f"No data available to export for {model} chart. Please run a prediction first.")
@@ -1295,6 +1345,7 @@ class MainWindow(QMainWindow):
             logging.error(traceback.format_exc())
             self.update_status(f"Error exporting {model} chart: {str(e)}")
 
+# Main entry point for the application
 if __name__ == "__main__":
     try:
         # Enable MPS (Metal Performance Shaders) for M1 Macs if available
