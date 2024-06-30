@@ -1,6 +1,6 @@
-# LSTM Stock Predict
+# LSTM Stock Predictor
 
-This Stock Prediction Application, developed by WeiEn Weng, is a comprehensive tool for predicting stock prices using various machine learning models. It integrates data fetching, preprocessing, and predictions with a user-friendly interface built using PyQt5.
+This Stock Predictor, developed by WeiEn Weng, is a comprehensive tool for predicting stock prices using various machine learning models. It integrates data fetching, preprocessing, and predictions with a user-friendly interface built using PyQt5.
 
 ## Features
 
@@ -95,4 +95,4 @@ This Stock Prediction Application, developed by WeiEn Weng, is a comprehensive t
 
 ---
 
-This README provides an overview of the Stock Prediction Application, its features, setup instructions, and usage guidelines. For detailed implementation and code understanding, refer to the source code files in the repository.
+This README provides an overview of the Stock Predictor, its features, setup instructions, and usage guidelines. For detailed implementation and code understanding, refer to the source code files in the repository.
