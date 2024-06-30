@@ -34,15 +34,15 @@ This Stock Predictor, developed by WeiEn Weng, is a comprehensive tool for predi
 ## Setup
 
 1. **Clone the repository**:
-    \```bash
+    ```bash
     git clone https://github.com/weienweng/LSTM-Stock-Predictor.git
     cd LSTM-Stock-Predictor
-    \```
+    ```
 
 2. **Install dependencies**:
-    \```bash
+    ```bash
     pip install -r requirements.txt
-    \```
+    ```
 
 3. **Google Sheets API Setup**:
     - Create a Google Cloud project.
@@ -56,9 +56,9 @@ This Stock Predictor, developed by WeiEn Weng, is a comprehensive tool for predi
 ## Usage
 
 1. **Run the application**:
-    \```bash
+    ```bash
     python app.py
-    \```
+    ```
 
 2. **User Interface**:
     - **Search Bar**: Enter a stock symbol to fetch data.
