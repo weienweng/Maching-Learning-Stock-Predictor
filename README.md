@@ -57,7 +57,7 @@ This Stock Predictor, developed by WeiEn Weng, is a comprehensive tool for predi
 
 1. **Run the application**:
     ```bash
-    python app.py
+    python lstmPublic.py
     ```
 
 2. **User Interface**:
