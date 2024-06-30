@@ -1,0 +1,13 @@
+numpy
+pandas
+torch
+scikit-learn
+PyQt5
+yfinance
+gspread
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+ta
+statsmodels
+matplotlib
