@@ -60,7 +60,7 @@ source venv/bin/activate   # On Windows use `venv\Scripts\activate`
     - Download the credentials JSON file and place it in the project directory.
 
 4. **Configuration**:
-    - Update `SERVICE_ACCOUNT_FILE` and `SPREADSHEET_ID` in the script with your credentials file path and spreadsheet ID.
+    - Update `PASTE_YOUR_JSON_FILE_PATH` and `YOUR_SHEET_ID` in the script with your credentials file path and spreadsheet ID.
 
 ## Usage
 
