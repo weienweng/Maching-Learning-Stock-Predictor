@@ -1,4 +1,4 @@
-# LSTM Stock Predictor
+# Maching Learning Stock Predictor
 
 This Stock Predictor, developed by WeiEn Weng, is a comprehensive tool for predicting stock prices using various machine learning models. It integrates data fetching, preprocessing, and predictions with a user-friendly interface built using PyQt5.
 
@@ -35,8 +35,8 @@ This Stock Predictor, developed by WeiEn Weng, is a comprehensive tool for predi
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/weienweng/LSTM-Stock-Predictor.git
-    cd LSTM-Stock-Predictor
+    git clone https://github.com/weienweng/Maching-Learning-Stock-Predictor.git
+    cd Maching-Learning-Stock-Predictor
     ```
 
 **Create a Virtual Environment (Optional)**
@@ -66,7 +66,7 @@ source venv/bin/activate   # On Windows use `venv\Scripts\activate`
 
 1. **Run the application**:
     ```bash
-    python lstmPublic.py
+    python MachineLearningStockPerdictor.py
     ```
 
 2. **User Interface**:
