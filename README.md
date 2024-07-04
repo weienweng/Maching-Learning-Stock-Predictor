@@ -92,7 +92,7 @@ source venv/bin/activate   # On Windows use `venv\Scripts\activate`
     
 ### Command-Line Instructions
 
-For advanced users, you can run the LSTM model directly from the command line by modifying and executing the script as needed. Refer to the `lstmPublic.py` script for customizable parameters and functions.
+For advanced users, you can run the LSTM model directly from the command line by modifying and executing the script as needed. Refer to the `MachineLearningStockPerdictor.py` script for customizable parameters and functions.
 
 ## Exporting Charts
 
