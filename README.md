@@ -17,6 +17,9 @@ This Stock Predictor, developed by WeiEn Weng, is a comprehensive tool for predi
 - **Concurrent Execution**: Utilizes ThreadPoolExecutor for running models concurrently.
 
 ## Screenshots
+![Screenshot 2024-10-13 at 4 24 45 PM](https://github.com/user-attachments/assets/c25b7237-49b4-4649-96a3-1c73cb0f764d)
+![Screenshot 2024-10-13 at 4 13 54 PM](https://github.com/user-attachments/assets/5816e697-7199-4bec-83b2-ce55931b45c9)
+![Screenshot 2024-10-13 at 4 17 26 PM](https://github.com/user-attachments/assets/dc713607-5e90-4944-ae4b-338967694804)
 
 ## Prerequisites
 
