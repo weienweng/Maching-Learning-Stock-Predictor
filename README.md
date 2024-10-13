@@ -16,6 +16,8 @@ This Stock Predictor, developed by WeiEn Weng, is a comprehensive tool for predi
 - **Metrics Calculation**: Evaluates models using MSE, RMSE, MAE, MAPE, and standard deviation of errors.
 - **Concurrent Execution**: Utilizes ThreadPoolExecutor for running models concurrently.
 
+## Screenshots
+
 ## Prerequisites
 
 - Python 3.7+
