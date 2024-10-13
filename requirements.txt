@@ -11,3 +11,4 @@ google-auth-httplib2
 ta
 statsmodels
 matplotlib
+tensorflow
